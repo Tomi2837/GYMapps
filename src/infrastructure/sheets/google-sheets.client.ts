@@ -1,8 +1,8 @@
 import { google } from "googleapis";
-import { getServerEnv } from "@/lib/env";
+import { getSheetsEnv } from "@/lib/env";
 
 export function getGoogleSheetsClient() {
-  const env = getServerEnv();
+  const env = getSheetsEnv();
 
   const auth = new google.auth.GoogleAuth({
     credentials: {
