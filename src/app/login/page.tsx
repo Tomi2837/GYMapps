@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Suspense } from "react";
+import { GoogleLogin } from "./google-login";
 import { LoginForm } from "./login-form";
 
 export default function LoginPage() {
@@ -40,14 +42,13 @@ export default function LoginPage() {
             <h2 className="mt-5 text-4xl font-black tracking-tight text-[#111827]">Bienvenido</h2>
             <p className="mt-3 text-base leading-7 text-gray-500">Ingresa con el acceso administrador o con una cuenta autorizada por el gimnasio.</p>
 
-            <button
-              type="button"
-              disabled
-              className="mt-8 flex h-14 w-full cursor-not-allowed items-center justify-center gap-3 rounded-2xl border border-gray-200 bg-white font-bold text-[#111827] opacity-60 shadow-sm"
+            <Suspense
+              fallback={(
+                <div className="mt-8 h-14 w-full animate-pulse rounded-2xl border border-gray-200 bg-gray-50" />
+              )}
             >
-              <span className="grid h-7 w-7 place-items-center rounded-full bg-white text-lg font-black text-blue-600 shadow">G</span>
-              Continuar con Google
-            </button>
+              <GoogleLogin />
+            </Suspense>
 
             <div className="my-6 flex items-center gap-4 text-xs font-bold uppercase tracking-[0.16em] text-gray-300">
               <span className="h-px flex-1 bg-gray-200" /> o <span className="h-px flex-1 bg-gray-200" />
@@ -59,8 +60,6 @@ export default function LoginPage() {
               <p className="text-sm font-bold text-[#25320c]">Primera vez en el sistema?</p>
               <Link href="/onboarding" className="mt-2 inline-flex text-sm font-black text-[#111827] underline decoration-2 underline-offset-4">Crear administrador y configurar gimnasio</Link>
             </div>
-
-            <p className="mt-5 text-center text-xs leading-5 text-gray-400">El inicio con Google se activara al conectar OAuth en Vercel.</p>
           </div>
         </div>
       </section>
