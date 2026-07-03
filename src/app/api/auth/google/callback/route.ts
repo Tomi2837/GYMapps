@@ -4,46 +4,76 @@ import { setAuthCookie } from "@/lib/auth-cookie";
 import { signAuthSession } from "@/lib/auth-token";
 import { hasGoogleOAuthConfig } from "@/lib/env";
 import { getGoogleOAuthClient } from "@/lib/google-oauth";
-import { findUserByEmail } from "@/infrastructure/sheets/store";
+import { GOOGLE_SETUP_COOKIE, signGoogleSetupProfile } from "@/lib/google-setup-token";
+import { findUserByEmail, isInitialSetupComplete } from "@/infrastructure/sheets/store";
 
 export const runtime = "nodejs";
 
 const STATE_COOKIE = "gym_google_oauth_state";
+const MODE_COOKIE = "gym_google_oauth_mode";
 
-function loginRedirect(request: Request, reason: string) {
-  return NextResponse.redirect(new URL(`/login?google=${reason}`, request.url));
+function authRedirect(request: Request, mode: string, reason: string) {
+  const target = mode === "setup" ? `/onboarding?google=${reason}` : `/login?google=${reason}`;
+  return NextResponse.redirect(new URL(target, request.url));
+}
+
+function clearOAuthCookies(response: NextResponse) {
+  response.cookies.set(STATE_COOKIE, "", { path: "/", maxAge: 0 });
+  response.cookies.set(MODE_COOKIE, "", { path: "/", maxAge: 0 });
 }
 
 export async function GET(request: Request) {
-  if (!hasGoogleOAuthConfig()) return loginRedirect(request, "not_configured");
+  const cookieStore = await cookies();
+  const mode = cookieStore.get(MODE_COOKIE)?.value === "setup" ? "setup" : "login";
+
+  if (!hasGoogleOAuthConfig()) return authRedirect(request, mode, "not_configured");
 
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
-  const cookieStore = await cookies();
   const expectedState = cookieStore.get(STATE_COOKIE)?.value;
 
   if (!code || !state || !expectedState || state !== expectedState) {
-    return loginRedirect(request, "invalid_state");
+    return authRedirect(request, mode, "invalid_state");
   }
 
   try {
     const { client, clientId } = getGoogleOAuthClient();
     const { tokens } = await client.getToken(code);
     const idToken = tokens.id_token;
-    if (!idToken) return loginRedirect(request, "missing_identity");
+    if (!idToken) return authRedirect(request, mode, "missing_identity");
 
     const ticket = await client.verifyIdToken({ idToken, audience: clientId });
     const profile = ticket.getPayload();
     const email = profile?.email?.trim().toLowerCase();
+    const googleSub = profile?.sub;
+    const name = profile?.name?.trim() || email?.split("@")[0] || "Administrador";
 
-    if (!email || profile?.email_verified === false) {
-      return loginRedirect(request, "unverified_email");
+    if (!email || !googleSub || profile?.email_verified === false) {
+      return authRedirect(request, mode, "unverified_email");
+    }
+
+    if (mode === "setup") {
+      if (await isInitialSetupComplete()) {
+        return authRedirect(request, mode, "setup_closed");
+      }
+
+      const pendingToken = await signGoogleSetupProfile({ email, name, googleSub });
+      const response = NextResponse.redirect(new URL("/onboarding?google=connected", request.url));
+      response.cookies.set(GOOGLE_SETUP_COOKIE, pendingToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        maxAge: 60 * 20,
+      });
+      clearOAuthCookies(response);
+      return response;
     }
 
     const user = await findUserByEmail(email);
     if (!user || user.status !== "active") {
-      return loginRedirect(request, "not_registered");
+      return authRedirect(request, mode, "not_registered");
     }
 
     const token = await signAuthSession({
@@ -56,10 +86,10 @@ export async function GET(request: Request) {
 
     const response = NextResponse.redirect(new URL("/dashboard", request.url));
     setAuthCookie(response, token);
-    response.cookies.set(STATE_COOKIE, "", { path: "/", maxAge: 0 });
+    clearOAuthCookies(response);
     return response;
   } catch (error) {
     console.error("Google OAuth callback failed", error);
-    return loginRedirect(request, "failed");
+    return authRedirect(request, mode, "failed");
   }
 }
