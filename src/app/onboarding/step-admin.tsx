@@ -13,7 +13,8 @@ export function StepAdmin({ value, onChange }: { value: AdminSetup; onChange: (v
 
       <button
         type="button"
-        className="mt-8 flex h-14 w-full max-w-xl items-center justify-center gap-3 rounded-2xl border border-gray-200 bg-white font-bold text-[#111827] shadow-sm transition hover:bg-gray-50"
+        disabled
+        className="mt-8 flex h-14 w-full max-w-xl cursor-not-allowed items-center justify-center gap-3 rounded-2xl border border-gray-200 bg-white font-bold text-[#111827] opacity-60 shadow-sm"
       >
         <span className="grid h-7 w-7 place-items-center rounded-full bg-white text-lg font-black text-blue-600 shadow">G</span>
         Continuar con Google
@@ -48,7 +49,7 @@ export function StepAdmin({ value, onChange }: { value: AdminSetup; onChange: (v
       </div>
 
       <p className="mt-5 max-w-xl text-xs leading-5 text-gray-400">
-        El acceso con Google quedara activo al cargar las credenciales OAuth en Vercel.
+        El acceso con Google se habilitara cuando conectemos las credenciales OAuth en Vercel.
       </p>
     </div>
   );
