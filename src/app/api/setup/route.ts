@@ -29,7 +29,6 @@ const setupSchema = z.object({
       id: z.string().trim().min(1).max(100),
       name: z.string().trim().min(1).max(120),
       category: z.string().trim().min(1).max(80),
-      imageUrl: z.string().url().optional().or(z.literal("")),
       imageName: z.string().max(180).optional(),
     }),
   ).max(200),
@@ -84,6 +83,13 @@ export async function POST(request: Request) {
     const branchId = `branch_${uuid()}`;
     const userId = `user_${uuid()}`;
     const passwordHash = await hash(parsed.data.admin.password, 12);
+    const machineRecords = parsed.data.machines.map((machine) => ({
+      catalogId: machine.id,
+      machineId: `machine_${uuid()}`,
+      name: machine.name,
+      category: machine.category,
+      imageName: machine.imageName ?? "",
+    }));
 
     await appendRows("USUARIOS", [[
       userId,
@@ -117,13 +123,13 @@ export async function POST(request: Request) {
 
     await appendRows(
       "MAQUINAS",
-      parsed.data.machines.map((machine) => [
-        `machine_${uuid()}`,
+      machineRecords.map((machine) => [
+        machine.machineId,
         gymId,
         machine.name,
         machine.category,
-        machine.imageUrl ?? "",
-        machine.imageUrl ? "custom" : "stock",
+        "",
+        "stock",
         true,
         now,
       ]),
@@ -150,7 +156,12 @@ export async function POST(request: Request) {
       role: "admin",
     });
 
-    const response = NextResponse.json({ ok: true, gymId, redirectTo: "/dashboard" });
+    const response = NextResponse.json({
+      ok: true,
+      gymId,
+      machineMap: machineRecords.map(({ catalogId, machineId }) => ({ catalogId, machineId })),
+      redirectTo: "/dashboard",
+    });
     setAuthCookie(response, token);
     return response;
   } catch (error) {
