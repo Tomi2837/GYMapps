@@ -2,6 +2,7 @@ export type AdminSetup = {
   name: string;
   email: string;
   password: string;
+  provider: "password" | "google";
 };
 
 export type GymSetup = {
