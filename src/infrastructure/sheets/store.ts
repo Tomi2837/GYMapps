@@ -85,3 +85,23 @@ export async function findUserByEmail(email: string) {
     createdAt: String(row[11] ?? ""),
   };
 }
+
+export async function updateMachineImage(gymId: string, machineId: string, imageUrl: string) {
+  const rows = await getRows("MAQUINAS");
+  const rowIndex = rows.findIndex(
+    (row) => String(row[0] ?? "") === machineId && String(row[1] ?? "") === gymId,
+  );
+
+  if (rowIndex < 0) {
+    throw new Error("Machine not found");
+  }
+
+  const sheetRow = rowIndex + 2;
+  const { sheets, spreadsheetId } = getGoogleSheetsClient();
+  await sheets.spreadsheets.values.update({
+    spreadsheetId,
+    range: `MAQUINAS!E${sheetRow}:F${sheetRow}`,
+    valueInputOption: "RAW",
+    requestBody: { values: [[imageUrl, "custom"]] },
+  });
+}
