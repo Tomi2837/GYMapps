@@ -46,6 +46,16 @@ export function StepAdmin({ value, onChange }: { value: AdminSetup; onChange: (v
             placeholder="admin@gimnasio.com"
           />
         </label>
+        <label>
+          <span className="mb-2 block text-sm font-bold text-gray-700">Contrasena</span>
+          <input
+            type="password"
+            value={value.password}
+            onChange={(event) => onChange({ ...value, password: event.target.value })}
+            className="h-14 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 outline-none transition focus:border-[#111827] focus:bg-white"
+            placeholder="Minimo 8 caracteres"
+          />
+        </label>
       </div>
 
       <p className="mt-5 max-w-xl text-xs leading-5 text-gray-400">
