@@ -15,11 +15,14 @@ const INITIAL_ADMIN: AdminSetup = { name: "", email: "", password: "" };
 const INITIAL_GYM: GymSetup = { name: "", address: "", phone: "" };
 const INITIAL_BRAND: BrandSetup = { primary: "#b8ff39", secondary: "#111827", background: "#f5f7fb" };
 
+type MachineMapItem = { catalogId: string; machineId: string };
+
 export function OnboardingWizard() {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [savingMessage, setSavingMessage] = useState("Creando gimnasio...");
   const [admin, setAdmin] = useState(INITIAL_ADMIN);
   const [gym, setGym] = useState(INITIAL_GYM);
   const [brand, setBrand] = useState(INITIAL_BRAND);
@@ -57,9 +60,35 @@ export function OnboardingWizard() {
     setStep((current) => Math.max(current - 1, 0));
   }
 
+  async function uploadMachineImages(machineMap: MachineMapItem[]) {
+    const machinesWithImages = selectedMachines.filter((machine) => machine.imageFile);
+    let failedUploads = 0;
+
+    for (let index = 0; index < machinesWithImages.length; index += 1) {
+      const machine = machinesWithImages[index];
+      const mappedMachine = machineMap.find((item) => item.catalogId === machine.id);
+      if (!mappedMachine || !machine.imageFile) continue;
+
+      setSavingMessage(`Subiendo fotos ${index + 1} de ${machinesWithImages.length}...`);
+      const formData = new FormData();
+      formData.append("machineId", mappedMachine.machineId);
+      formData.append("file", machine.imageFile);
+
+      const uploadResponse = await fetch("/api/uploads/machine", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) failedUploads += 1;
+    }
+
+    return failedUploads;
+  }
+
   async function finish() {
     setError("");
     setSaving(true);
+    setSavingMessage("Creando gimnasio...");
 
     try {
       const response = await fetch("/api/setup", {
@@ -75,7 +104,6 @@ export function OnboardingWizard() {
             name: machine.name,
             category: machine.category,
             imageName: machine.imageName ?? "",
-            imageUrl: "",
           })),
         }),
       });
@@ -86,12 +114,18 @@ export function OnboardingWizard() {
         return;
       }
 
-      router.push(data.redirectTo ?? "/dashboard");
+      const failedUploads = await uploadMachineImages(data.machineMap ?? []);
+      const redirectTo = failedUploads > 0
+        ? `${data.redirectTo ?? "/dashboard"}?images=pending`
+        : data.redirectTo ?? "/dashboard";
+
+      router.push(redirectTo);
       router.refresh();
     } catch {
       setError("No se pudo conectar con el servidor.");
     } finally {
       setSaving(false);
+      setSavingMessage("Creando gimnasio...");
     }
   }
 
@@ -173,7 +207,7 @@ export function OnboardingWizard() {
                 </button>
               ) : (
                 <button type="button" onClick={finish} disabled={saving} className="h-13 rounded-2xl bg-[#b8ff39] px-8 text-sm font-black text-[#111827] transition hover:-translate-y-0.5 hover:brightness-95 disabled:cursor-wait disabled:opacity-60">
-                  {saving ? "Creando gimnasio..." : "Crear gimnasio"}
+                  {saving ? savingMessage : "Crear gimnasio"}
                 </button>
               )}
             </div>
