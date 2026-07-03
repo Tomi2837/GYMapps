@@ -23,4 +23,5 @@ export type MachineSetup = {
   selected: boolean;
   imagePreview?: string;
   imageName?: string;
+  imageFile?: File;
 };
