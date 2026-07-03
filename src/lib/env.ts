@@ -43,6 +43,13 @@ export function getSheetsEnv() {
   });
 }
 
+export function getServerEnv() {
+  return {
+    ...getSheetsEnv(),
+    ...getSessionEnv(),
+  };
+}
+
 export function hasGoogleOAuthConfig(): boolean {
   return Boolean(
     process.env.GOOGLE_OAUTH_CLIENT_ID &&
