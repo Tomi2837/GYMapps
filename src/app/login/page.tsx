@@ -14,19 +14,14 @@ export default function LoginPage() {
                 <p className="text-sm text-white/55">Gestion integral</p>
               </div>
             </div>
-            <h1 className="max-w-md text-5xl font-black leading-[1.05] tracking-tight">
-              Tu gimnasio, ordenado en un solo lugar.
-            </h1>
+            <h1 className="max-w-md text-5xl font-black leading-[1.05] tracking-tight">Tu gimnasio, ordenado en un solo lugar.</h1>
             <p className="mt-6 max-w-md text-lg leading-8 text-white/65">
               Socios, pagos, ingresos, rutinas y estadisticas desde una plataforma moderna e instalable.
             </p>
           </div>
-
           <div className="relative grid grid-cols-3 gap-3">
             {["Socios", "Pagos", "Check-in"].map((item) => (
-              <div key={item} className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm font-semibold text-white/80">
-                {item}
-              </div>
+              <div key={item} className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm font-semibold text-white/80">{item}</div>
             ))}
           </div>
         </div>
@@ -40,15 +35,15 @@ export default function LoginPage() {
           </div>
 
           <div className="max-w-md">
-            <span className="inline-flex rounded-full bg-[#b8ff39]/30 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-[#33430d]">
-              Acceso al sistema
-            </span>
+            <span className="inline-flex rounded-full bg-[#b8ff39]/30 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-[#33430d]">Acceso al sistema</span>
             <h2 className="mt-5 text-4xl font-black tracking-tight text-[#111827]">Bienvenido</h2>
-            <p className="mt-3 text-base leading-7 text-gray-500">
-              Ingresa con el acceso administrador o con una cuenta autorizada por el gimnasio.
-            </p>
+            <p className="mt-3 text-base leading-7 text-gray-500">Ingresa con el acceso administrador o con una cuenta autorizada por el gimnasio.</p>
 
-            <button type="button" className="mt-8 flex h-14 w-full items-center justify-center gap-3 rounded-2xl border border-gray-200 bg-white font-bold text-[#111827] shadow-sm transition hover:bg-gray-50">
+            <button
+              type="button"
+              disabled
+              className="mt-8 flex h-14 w-full cursor-not-allowed items-center justify-center gap-3 rounded-2xl border border-gray-200 bg-white font-bold text-[#111827] opacity-60 shadow-sm"
+            >
               <span className="grid h-7 w-7 place-items-center rounded-full bg-white text-lg font-black text-blue-600 shadow">G</span>
               Continuar con Google
             </button>
@@ -68,20 +63,14 @@ export default function LoginPage() {
               </label>
             </form>
 
-            <Link href="/dashboard" className="mt-7 flex h-14 w-full items-center justify-center rounded-2xl bg-[#111827] px-5 font-bold text-white transition hover:-translate-y-0.5 hover:bg-black">
-              Ingresar
-            </Link>
+            <Link href="/dashboard" className="mt-7 flex h-14 w-full items-center justify-center rounded-2xl bg-[#111827] px-5 font-bold text-white transition hover:-translate-y-0.5 hover:bg-black">Ingresar</Link>
 
             <div className="mt-7 rounded-2xl border border-[#b8ff39]/60 bg-[#b8ff39]/15 p-4 text-center">
               <p className="text-sm font-bold text-[#25320c]">Primera vez en el sistema?</p>
-              <Link href="/onboarding" className="mt-2 inline-flex text-sm font-black text-[#111827] underline decoration-2 underline-offset-4">
-                Crear administrador y configurar gimnasio
-              </Link>
+              <Link href="/onboarding" className="mt-2 inline-flex text-sm font-black text-[#111827] underline decoration-2 underline-offset-4">Crear administrador y configurar gimnasio</Link>
             </div>
 
-            <p className="mt-5 text-center text-xs leading-5 text-gray-400">
-              El inicio con Google se activara al conectar OAuth en Vercel.
-            </p>
+            <p className="mt-5 text-center text-xs leading-5 text-gray-400">El inicio con Google se activara al conectar OAuth en Vercel.</p>
           </div>
         </div>
       </section>
