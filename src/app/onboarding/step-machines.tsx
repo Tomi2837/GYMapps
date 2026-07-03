@@ -13,7 +13,7 @@ export function StepMachines({ value, onChange }: { value: MachineSetup[]; onCha
     onChange(
       value.map((machine) =>
         machine.id === id
-          ? { ...machine, selected: true, imagePreview, imageName: file.name }
+          ? { ...machine, selected: true, imagePreview, imageName: file.name, imageFile: file }
           : machine,
       ),
     );
@@ -59,7 +59,7 @@ export function StepMachines({ value, onChange }: { value: MachineSetup[]; onCha
                 {machine.imageName ? "Cambiar foto" : "Cargar foto propia"}
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
                   className="hidden"
                   onChange={(event) => loadImage(machine.id, event.target.files?.[0])}
                 />
