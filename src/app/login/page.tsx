@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LoginForm } from "./login-form";
 
 export default function LoginPage() {
   return (
@@ -52,18 +53,7 @@ export default function LoginPage() {
               <span className="h-px flex-1 bg-gray-200" /> o <span className="h-px flex-1 bg-gray-200" />
             </div>
 
-            <form className="space-y-5">
-              <label className="block">
-                <span className="mb-2 block text-sm font-semibold text-gray-700">Email</span>
-                <input type="email" placeholder="nombre@gimnasio.com" className="h-14 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 outline-none transition focus:border-[#111827] focus:bg-white" />
-              </label>
-              <label className="block">
-                <span className="mb-2 block text-sm font-semibold text-gray-700">Contrasena</span>
-                <input type="password" placeholder="••••••••" className="h-14 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 outline-none transition focus:border-[#111827] focus:bg-white" />
-              </label>
-            </form>
-
-            <Link href="/dashboard" className="mt-7 flex h-14 w-full items-center justify-center rounded-2xl bg-[#111827] px-5 font-bold text-white transition hover:-translate-y-0.5 hover:bg-black">Ingresar</Link>
+            <LoginForm />
 
             <div className="mt-7 rounded-2xl border border-[#b8ff39]/60 bg-[#b8ff39]/15 p-4 text-center">
               <p className="text-sm font-bold text-[#25320c]">Primera vez en el sistema?</p>
