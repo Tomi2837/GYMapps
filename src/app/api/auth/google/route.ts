@@ -6,10 +6,15 @@ import { getGoogleOAuthClient } from "@/lib/google-oauth";
 export const runtime = "nodejs";
 
 const STATE_COOKIE = "gym_google_oauth_state";
+const MODE_COOKIE = "gym_google_oauth_mode";
 
 export async function GET(request: Request) {
+  const requestUrl = new URL(request.url);
+  const mode = requestUrl.searchParams.get("mode") === "setup" ? "setup" : "login";
+
   if (!hasGoogleOAuthConfig()) {
-    return NextResponse.redirect(new URL("/login?google=not_configured", request.url));
+    const target = mode === "setup" ? "/onboarding?google=not_configured" : "/login?google=not_configured";
+    return NextResponse.redirect(new URL(target, request.url));
   }
 
   const state = randomBytes(24).toString("hex");
@@ -22,12 +27,15 @@ export async function GET(request: Request) {
   });
 
   const response = NextResponse.redirect(authorizationUrl);
-  response.cookies.set(STATE_COOKIE, state, {
+  const cookieOptions = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: "lax" as const,
     path: "/",
     maxAge: 60 * 10,
-  });
+  };
+
+  response.cookies.set(STATE_COOKIE, state, cookieOptions);
+  response.cookies.set(MODE_COOKIE, mode, cookieOptions);
   return response;
 }
