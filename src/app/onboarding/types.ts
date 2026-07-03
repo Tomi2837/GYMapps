@@ -1,6 +1,7 @@
 export type AdminSetup = {
   name: string;
   email: string;
+  password: string;
 };
 
 export type GymSetup = {
