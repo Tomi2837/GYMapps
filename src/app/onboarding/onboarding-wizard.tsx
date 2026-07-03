@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MACHINE_CATALOG, SETUP_STEPS } from "./data";
 import { StepAdmin } from "./step-admin";
@@ -11,7 +11,7 @@ import { StepGym } from "./step-gym";
 import { StepMachines } from "./step-machines";
 import type { AdminSetup, BrandSetup, GymSetup, MachineSetup } from "./types";
 
-const INITIAL_ADMIN: AdminSetup = { name: "", email: "", password: "" };
+const INITIAL_ADMIN: AdminSetup = { name: "", email: "", password: "", provider: "password" };
 const INITIAL_GYM: GymSetup = { name: "", address: "", phone: "" };
 const INITIAL_BRAND: BrandSetup = { primary: "#b8ff39", secondary: "#111827", background: "#f5f7fb" };
 
@@ -33,9 +33,38 @@ export function OnboardingWizard() {
 
   const selectedMachines = useMemo(() => machines.filter((machine) => machine.selected), [machines]);
 
+  useEffect(() => {
+    let active = true;
+
+    fetch("/api/auth/google/setup-profile")
+      .then(async (response) => {
+        if (!response.ok) return null;
+        return response.json();
+      })
+      .then((data) => {
+        if (!active || !data?.connected) return;
+        setAdmin({
+          name: data.profile.name,
+          email: data.profile.email,
+          password: "",
+          provider: "google",
+        });
+      })
+      .catch(() => null);
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   function validate() {
-    if (step === 0 && (!admin.name.trim() || !admin.email.trim() || admin.password.length < 8)) {
-      setError("Completa nombre, email y una contrasena de al menos 8 caracteres.");
+    const missingPassword = admin.provider === "password" && admin.password.length < 8;
+    if (step === 0 && (!admin.name.trim() || !admin.email.trim() || missingPassword)) {
+      setError(
+        admin.provider === "google"
+          ? "No se pudo verificar la cuenta de Google. Vuelve a conectarla."
+          : "Completa nombre, email y una contrasena de al menos 8 caracteres.",
+      );
       return false;
     }
     if (step === 1 && (!gym.name.trim() || !gym.address.trim())) {
@@ -144,19 +173,19 @@ export function OnboardingWizard() {
 
           <div className="relative mt-10 hidden space-y-2 lg:block">
             {SETUP_STEPS.map((title, index) => {
-              const active = index === step;
+              const activeStep = index === step;
               const completed = index < step;
               return (
                 <button
                   key={title}
                   type="button"
                   onClick={() => completed && setStep(index)}
-                  className={`flex w-full items-center gap-4 rounded-2xl px-4 py-4 text-left transition ${active ? "bg-white/10" : "hover:bg-white/5"}`}
+                  className={`flex w-full items-center gap-4 rounded-2xl px-4 py-4 text-left transition ${activeStep ? "bg-white/10" : "hover:bg-white/5"}`}
                 >
-                  <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl text-sm font-black ${active || completed ? "bg-[#b8ff39] text-[#111827]" : "border border-white/15 text-white/45"}`}>
+                  <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl text-sm font-black ${activeStep || completed ? "bg-[#b8ff39] text-[#111827]" : "border border-white/15 text-white/45"}`}>
                     {completed ? "✓" : index + 1}
                   </span>
-                  <span className={active ? "font-bold text-white" : "font-bold text-white/60"}>{title}</span>
+                  <span className={activeStep ? "font-bold text-white" : "font-bold text-white/60"}>{title}</span>
                 </button>
               );
             })}
